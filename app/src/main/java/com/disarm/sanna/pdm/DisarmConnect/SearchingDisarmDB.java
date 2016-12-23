@@ -19,7 +19,7 @@ public class SearchingDisarmDB implements Runnable {
     private android.os.Handler handler;
     private Context context;
     private int timerDBSearch = 3000;
-    public int minDBLevel = 3;
+    public int minDBLevel = 2;
 
     public String connectedSSID = MyService.wifi.getConnectionInfo().getSSID().toString().replace("\"","");
     public String lastConnectedSSID = connectedSSID;
@@ -67,9 +67,11 @@ public class SearchingDisarmDB implements Runnable {
             int level = findDBSignalLevel(allScanResults);
             if (level < minDBLevel)
             {
-                if(MyService.wifi.disconnect()) {
-                    Logger.addRecordToLog("DB Disconnected as Level = " + level);
-                    Log.v(MyService.TAG1,"DB Disconnected as Level = " + level);
+                if(connectedSSID.contains("DB")) {
+                    if (MyService.wifi.disconnect()) {
+                        Logger.addRecordToLog("DB Disconnected as Level = " + level);
+                        Log.v(MyService.TAG1, "DB Disconnected as Level = " + level);
+                    }
                 }
             }
             else {
@@ -82,7 +84,7 @@ public class SearchingDisarmDB implements Runnable {
                 wc.preSharedKey = "\""+ MyService.dbPass +"\"";
                 wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
 
-                //  wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+              //    wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
 
                 int res = MyService.wifi.addNetwork(wc);
                 boolean b = MyService.wifi.enableNetwork(res, true);

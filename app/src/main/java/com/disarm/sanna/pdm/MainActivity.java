@@ -31,6 +31,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private SwitchCompat syncTog, connTog, gpsTog;
+    private SwitchCompat syncTog, connTog, gpsTog, emulation;
     SyncService syncService;
     MyService myService;
     float speed;
@@ -74,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
             R.string.shelter,
             R.string.victim};
     private boolean doubleBackToExitPressedOnce = false;
+    public String TAG_Emulation = "Emulator";
+    public Emulator emulator;
+
 
 
     public interface ClickListener {
@@ -87,12 +91,27 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+      setSupportActionBar(toolbar);
 
-        img_wifi_state = (ImageView) findViewById(R.id.img_wifi_state);
+
+
+      //  mcsButton = (Button) findViewById(R.id.mcs);
+
+     //   mcsButton.setOnClickListener(new View.OnClickListener() {
+
+                                    //  @Override
+                                    //  public void onClick(View view) {
+
+                                       //   Intent myIntent = new Intent(view.getContext(), Navigation.class);
+                                        //  startActivityForResult(myIntent, 0);
+
+      img_wifi_state = (ImageView) findViewById(R.id.img_wifi_state);
         syncTog = (SwitchCompat) findViewById(R.id.synctoggle);
         connTog = (SwitchCompat) findViewById(R.id.conntoggle);
         gpsTog = (SwitchCompat) findViewById(R.id.gpstoggle);
+        // Emulation code
+        emulation = (SwitchCompat) findViewById(R.id.emulation);
+
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         textConnect = (TextView) findViewById(R.id.textView12);
 
@@ -136,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         syncTog.setOnCheckedChangeListener(this);
         connTog.setOnCheckedChangeListener(this);
         gpsTog.setOnCheckedChangeListener(this);
+        // EMulation oncheck
+        emulation.setOnCheckedChangeListener(this);
 
         boolean c = isMyServiceRunning(bishakh.psync.SyncService.class);
         if (c)
@@ -150,6 +171,23 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
             connTog.setChecked(false);
 
 
+        // Read Source name for PEerID
+        // Read Device source from ConfigFile.txt
+        File file = new File(TARGET_DMS_PATH,"source.txt");
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            byte[] data = new byte[(int) file.length()];
+            fis.read(data);
+            fis.close();
+
+            this.phoneVal = new String(data, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Create Emulator object
+        this.emulator = new Emulator(this.phoneVal);
     }
 
     @Override
@@ -205,6 +243,20 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
                     }
                 }
                 break;
+
+            case R.id.emulation:
+                if(b)
+                {
+                    emulator.startEmulator();
+                    Log.v(TAG_Emulation,"Emulation Started");
+
+                }
+                else
+                {
+                    emulator.stopEmulator();
+                    Log.v(TAG_Emulation,"Emulation Stopped");
+                }
+                break;
         }
     }
 
@@ -223,14 +275,22 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        //noinspection SimplifiableIfStatemen
         if (id == R.id.action_settings) {
             return true;
+
         } else if (id == R.id.webView) {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://192.168.43.1:8000"));
             startActivity(browserIntent);
-        } else if (id == R.id.mapView) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://127.0.0.1:8080/getMapAsset/index.html"));
+
+
+        } else if (id == R.id.mcs) {
+            Intent myIntent = new Intent(MainActivity.this, Navigation.class );
+            startActivity(myIntent);
+
+        }
+        else if (id == R.id.mapView) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://192.168.43.1:8000"));
             startActivity(browserIntent);
         } else if (id == R.id.reset) {
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -411,20 +471,6 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         boolean statusOfGPS = manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (statusOfGPS) {
             // Call logger constructor using phoneVal
-            // Read Device source from ConfigFile.txt
-            File file = new File(TARGET_DMS_PATH,"source.txt");
-            FileInputStream fis = null;
-            try {
-                fis = new FileInputStream(file);
-                byte[] data = new byte[(int) file.length()];
-                fis.read(data);
-                fis.close();
-
-                phoneVal = new String(data, "UTF-8");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
             logger = new Logger(phoneVal);
 
 

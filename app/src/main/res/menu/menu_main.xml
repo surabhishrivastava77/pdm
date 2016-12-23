@@ -9,6 +9,14 @@
     app:showAsAction="never" />
 
     <item
+        android:id="@+id/mcs"
+        android:orderInCategory="100"
+        android:icon="@drawable/webhook"
+        app:showAsAction="always"
+        android:title="WebView" />
+
+
+    <item
         android:id="@+id/webView"
         android:orderInCategory="100"
         android:icon="@drawable/webhook"
